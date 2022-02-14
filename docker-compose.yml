@@ -1,0 +1,28 @@
+version: '3'
+services:
+  openldap:
+    container_name: openldap
+    image: osixia/openldap:1.5.0
+    restart: always
+    environment:
+      LDAP_ORGANISATION: "TEST Inc."
+      LDAP_DOMAIN: "test.com"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+    volumes:
+      - ./ldap:/var/lib/ldap
+      - ./slapd.d:/etc/ldap/slapd.d
+    ports:
+      - 389:389
+
+  phpldapadmin:
+    container_name: phpldapadmin
+    image: osixia/phpldapadmin:latest
+    restart: always
+    environment:
+      PHPLDAPADMIN_HTTPS: "false"
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+    ports:
+      - 8080:80
+    depends_on:
+      - openldap
