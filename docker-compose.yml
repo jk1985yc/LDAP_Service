@@ -1,28 +1,30 @@
-version: '3'
+version: '2'
 services:
   openldap:
-    container_name: openldap
     image: osixia/openldap:1.5.0
-    restart: always
-    environment:
-      LDAP_ORGANISATION: "TEST Inc."
-      LDAP_DOMAIN: "test.com"
-      LDAP_ADMIN_PASSWORD: "admin"
-      LDAP_CONFIG_PASSWORD: "config"
+    container_name: openldap
+    env_file: ./ldap.env
+    tty: true
+    stdin_open: true
     volumes:
       - ./ldap:/var/lib/ldap
       - ./slapd.d:/etc/ldap/slapd.d
+      - /container/service/slapd/assets/certs/
     ports:
-      - 389:389
-
+      - "389:389"
+      - "636:636"
+    # For replication to work correctly, domainname and hostname must be
+    # set correctly so that "hostname"."domainname" equates to the
+    # fully-qualified domain name for the host.
+    domainname: "example.org"
+    hostname: "ldap-server"
   phpldapadmin:
-    container_name: phpldapadmin
     image: osixia/phpldapadmin:latest
-    restart: always
+    container_name: phpldapadmin
     environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
       PHPLDAPADMIN_HTTPS: "false"
-      PHPLDAPADMIN_LDAP_HOSTS: openldap
     ports:
-      - 8080:80
+      - "8080:80"
     depends_on:
       - openldap
